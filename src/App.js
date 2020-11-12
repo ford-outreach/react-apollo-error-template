@@ -1,11 +1,27 @@
-import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import React, { useState } from 'react';
+import { gql, useQuery, useMutation } from '@apollo/client';
 
 const ALL_PEOPLE = gql`
   query AllPeople {
+    parent {
+      id
+      child {
+        id
+        pet {
+          toy {
+            style
+          }
+        }
+      }
+    }
     people {
       id
       name
+      pet {
+        toy {
+          brand
+        }
+      }
     }
   }
 `;
@@ -21,10 +37,7 @@ const ADD_PERSON = gql`
 
 export default function App() {
   const [name, setName] = useState('');
-  const {
-    loading,
-    data,
-  } = useQuery(ALL_PEOPLE);
+  const { loading, data } = useQuery(ALL_PEOPLE);
 
   const [addPerson] = useMutation(ADD_PERSON, {
     update: (cache, { data: { addPerson: addPersonData } }) => {
@@ -34,10 +47,7 @@ export default function App() {
         query: ALL_PEOPLE,
         data: {
           ...peopleResult,
-          people: [
-            ...peopleResult.people,
-            addPersonData,
-          ],
+          people: [...peopleResult.people, addPersonData],
         },
       });
     },
@@ -51,18 +61,17 @@ export default function App() {
       </p>
       <div className="add-person">
         <label htmlFor="name">Name</label>
-        <input 
-          type="text" 
-          name="name" 
+        <input
+          type="text"
+          name="name"
           value={name}
-          onChange={evt => setName(evt.target.value)}
+          onChange={(evt) => setName(evt.target.value)}
         />
         <button
           onClick={() => {
             addPerson({ variables: { name } });
             setName('');
-          }}
-        >
+          }}>
           Add person
         </button>
       </div>
@@ -71,7 +80,7 @@ export default function App() {
         <p>Loading…</p>
       ) : (
         <ul>
-          {data?.people.map(person => (
+          {data?.people.map((person) => (
             <li key={person.id}>{person.name}</li>
           ))}
         </ul>
